@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+    <title>Registration Form</title>
+    <style>
+        body {
+            font-family: 'Varela Round', sans-serif;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            background-color: #7FA1C3; 
+            padding: 20px;
+        }
+
+        form {
+            max-width: 400px; 
+            width: 100%; 
+            padding: 20px; 
+            background-color: #F5F7F8; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+            border-radius: 8px; 
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px; 
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+
+        .error {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007BFF;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: center;
+            color: green;
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        .weak { color: red; }
+        .medium { color: orange; }
+        .strong { color: green; }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+
+            button {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <form id="registrationForm" method="post">
+        <h2>Registration Form</h2>
+        <div id="result"></div>
+        <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" required>
+            <div id="first_name_error" class="error"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" required>
+            <div id="last_name_error" class="error"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+            <div id="username_error" class="error"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+            <div id="email_error" class="error"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <div id="password_error" class="error"></div>
+            <div id="password_strength" class="password-strength"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="repeatPassword">Confirm Password</label>
+            <input type="password" id="repeatPassword" name="repeatPassword" required>
+            <div id="repeatPassword_error" class="error"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="birthdate">Birthdate</label>
+            <input type="date" id="birthdate" name="birthdate" required>
+            <div id="birthdate_error" class="error"></div>
+        </div>
+
+        <button type="submit">Register</button>
+    </form>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        document.getElementById("registrationForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent default form submission
+    
+            const formData = new FormData(this); // Collect form data
+    
+            // Send a POST request to register.php
+            fetch('register.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(error => {
+                        throw error; // Handle error responses
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("result").innerHTML = data.message; // Show success message
+                    document.getElementById("result").style.color = "green";
+                } else {
+                    document.getElementById("result").innerHTML = "Please fix the errors."; // Show errors
+                    document.getElementById("result").style.color = "red";
+    
+                    // Display validation errors
+                    for (const [key, message] of Object.entries(data.errors)) {
+                        document.getElementById(`${key}_error`).innerHTML = message;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error); // Log error
+                document.getElementById("result").innerHTML = "An error occurred. Please try again."; // Error message
+                document.getElementById("result").style.color = "red";
+            });
+        });
+    
+        // Handle input field clicks
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('click', function() {
+                let input = this.name;
+    
+    
+                console.log(`Clicked on: ${input}`);
+
+                fetch('register.php?action=input_click&input=' + encodeURIComponent(input), {
+                    method: 'GET', // Note: This is a GET request
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(`Clicked on ${input}:`, data);
+                })
+                .catch(error => {
+                    console.error(`Error while clicking ${input}:`, error);
+                });
+            });
+        });
+    </script>
+    
+    </script>
+</body>
+</html>
